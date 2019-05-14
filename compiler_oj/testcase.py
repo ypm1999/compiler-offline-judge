@@ -40,13 +40,16 @@ class TestCase:
 
 def read_testcases(dir):
     testcases = []
+    
+    for maindir, subdir, file_name_list in os.walk(dir):
+        dir = maindir.replace("/home/sjtu-ypm/complier/compiler-offline-judge/", "")
+        for filename in file_name_list:
+            name = os.path.join(dir, filename)
+            __, extension = os.path.splitext(name)
+            if extension != ".txt":
+                continue
+            with open(os.path.join(maindir, filename)) as f:
+                raw = f.read()
+                testcases.append(TestCase(raw, name))
 
-    names = os.listdir(dir)
-    for name in names:
-        __, extension = os.path.splitext(name)
-        if extension != ".txt":
-            continue
-        with open(os.path.join(dir, name)) as f:
-            raw = f.read()
-            testcases.append(TestCase(raw, name))
     return testcases

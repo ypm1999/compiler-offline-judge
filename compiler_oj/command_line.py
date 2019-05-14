@@ -55,9 +55,10 @@ def main():
     res = subprocess.run(
         ["bash", os.path.join(config["bash_dir"], "__build.bash")],
         stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+    print("")
+    print(str(res.stderr))
     if res.returncode != 0:
         print("Failed.")
-        print(str(res.stderr))
         return
     print("Passed.")
 
@@ -69,7 +70,8 @@ def main():
     pass_num = 0
     test_num = 0
     for test in cases:
-        print("running " + test.filename + "...", end=" ")
+        print("running " + test.filename + "..", end=" ")
+        print("\ttimeLimit:%.2lf" % (test.timeout), end="")
         sys.stdout.flush()
         phase = test.phase.partition(" ")[0]
         if phase == "codegen":
@@ -80,18 +82,19 @@ def main():
             res = semantic_test.test(
                 test, os.path.join(config["bash_dir"], "__semantic.bash"))
         elif phase == "optim":
+
             res = codegen_test.test(
                 test, os.path.join(config["bash_dir"], "__optim.bash"))
         else:
             print(phase + " is unsupported currently")
             continue
         test_num += 1
-        if res[0]:
+        if ((res[0] and res[1] == "") or (not res[0] and res[1] == "The build should fail")):
             pass_num += 1
-            print("\033[32mPassed. " + res[1] + "\033[0m")
+            print("\t\033[32mPassed. " + res[1] + "\033[0m")
         else:
             cases_failed.append(test.filename)
-            print("\033[31mFailed: " + res[1] + "\033[0m")
+            print("\t\033[31mFailed: " + res[1] + "\033[0m")
 
     if len(cases_failed) == 0:
         print("All testcases have been passed")
@@ -106,7 +109,9 @@ def main():
                    stderr=subprocess.DEVNULL)
     rm = "rm " + config['bash_dir'] + "/__*.bash"
     subprocess.run(rm, shell=True)
-    subprocess.run("rm ./__ir.ll", shell=True)
+    rm = "rm -rf " + config['bash_dir'] + "/bin"
+    subprocess.run(rm, shell=True)
+#    subprocess.run("rm ./__ir.ll", shell=True)
 
     # TODO
     # print("\nComparing with the last run: ")

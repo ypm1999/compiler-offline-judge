@@ -5,14 +5,6 @@ from . import testcase
 
 def check_result(case, res):
     # type: (testcase, subprocess.CompletedProcess) -> (bool, str)
-    if case.assertion == "output":
-        if res.returncode != 0:
-            return False, "Unexpected runtime error"
-        output = '\n'.join([x.strip()
-                            for x in res.stdout.decode('utf-8').split('\n')])
-        if output.strip() == case.output.strip():
-            return True, ""
-        return False, "output dismatched"
     if case.assertion == "exitcode":
         if res.returncode == case.exitcode:
             return True, ""
@@ -21,7 +13,20 @@ def check_result(case, res):
         if res.returncode != 0:
             return True, ""
         return False, "Runtime error expected"
-    return False, "Unknown"
+
+    # default cmp output
+    if res.returncode != 0:
+        return False, "Unexpected runtime error"
+    output = '\n'.join([x.strip()
+                        for x in res.stdout.decode('utf-8').split('\n')])
+    # out1 = open("std.out", "w")
+    # out2 = open("my.out", "w")
+    # out2.write(output.strip())
+    # out1.write(case.output.strip())
+    # print(output.strip())
+    if output.strip() == case.output.strip():
+        return True, ""
+    return False, "output dismatched"
     pass
 
 
@@ -55,9 +60,9 @@ def test_with_asm(case, asm_src):
 
 def test(case, bash_path, ir_interpreter_path=""):
     # type: (testcase, str, str) -> (bool, str)
-    
+
     res = subprocess.run(["bash", bash_path], input=case.src.encode('utf-8'),
-                         stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+                         stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=8)
 
     if ir_interpreter_path:
         return test_with_ir_interpreter(case, res.stdout.decode('utf-8'),

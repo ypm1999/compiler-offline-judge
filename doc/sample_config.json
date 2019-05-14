@@ -1,7 +1,7 @@
 {
-    "testcases_dir": "./TestCases",
-    "bash_dir": "../Compiler",
+    "testcases_dir": "/home/sjtu-ypm/complier/compiler-offline-judge/testcases/",
+    "bash_dir": "/home/sjtu-ypm/complier/",
     "phases": [
-        "codegen pretest"
+        "semantic pretest,codegen pretest"
     ]
 }

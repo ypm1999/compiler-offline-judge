@@ -1,20 +1,25 @@
 import subprocess
+import time
 
 
 def run(path, input=None, timeout=None):
     res = subprocess.run("nasm -felf64 -o __a.o " + path, shell=True,
                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
     if res.returncode != 0:
         return False, "The nasm code can not be compiled."
+
     res = subprocess.run("gcc -o __a.out -O0 --static -fno-pie -no-pie __a.o",
                          shell=True, stdout=subprocess.DEVNULL,
                          stderr=subprocess.DEVNULL)
     if res.returncode != 0:
         return False, "The nasm code can not be linked"
-
     try:
+        start = time.time()
         res = subprocess.run("./__a.out", input=input, stdout=subprocess.PIPE,
                              stderr=subprocess.DEVNULL, timeout=timeout)
+        end = time.time()
+        print("\ttime:%.4lf" % (end-start), end="")
     except UnicodeDecodeError:
         return False, "The output can not be decoded"
     return True, res
